@@ -1,0 +1,4 @@
+# Hashes of file build rules.
+02ddcd5e748c94c3c6bba6543a5db204 opendds_generated/StatusC.h
+0c68e93e3bbc18efa339175eb2eafa16 opendds_generated/StatusTypeSupportC.h
+2d6ddf3c6fd61b3048747f1b76e3db40 opendds_generated/StatusTypeSupportImpl.h

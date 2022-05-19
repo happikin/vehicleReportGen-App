@@ -1,0 +1,11 @@
+@topic
+struct Status
+{
+    @key long ID;
+    octet ready; // each bit will be set if the corresponding data is 4set in Status struct
+    float engineTemp;       // bit 0
+    float carWeight;        // bit 1
+    long rpmStatus;         // bit 2
+    float fuelTank;         // bit 3
+    float suspensionHealth; // bit 4
+};

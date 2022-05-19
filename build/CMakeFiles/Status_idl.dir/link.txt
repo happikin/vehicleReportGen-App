@@ -1,0 +1,2 @@
+/usr/bin/ar qc libStatus_idl.a CMakeFiles/Status_idl.dir/opendds_generated/StatusTypeSupportImpl.cpp.o CMakeFiles/Status_idl.dir/opendds_generated/StatusC.cpp.o CMakeFiles/Status_idl.dir/opendds_generated/StatusTypeSupportC.cpp.o
+/usr/bin/ranlib libStatus_idl.a
