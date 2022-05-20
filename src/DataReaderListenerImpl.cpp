@@ -214,7 +214,7 @@ int StatusData::DisplayFunc() {
 #endif
 
     // Create window with graphics context
-    GLFWwindow* window = glfwCreateWindow(1280, 720, "Dear ImGui GLFW+OpenGL3 example", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(1280, 720, "Vehicle Test Report Application", NULL, NULL);
     if (window == NULL)
         return 1;
     glfwMakeContextCurrent(window);
@@ -247,13 +247,13 @@ int StatusData::DisplayFunc() {
       while(mRunning) {
         while(!this->buffer.empty() && (data != nullptr)) {
           // Instead of logging data here in the console, build the graph in GUI
-          std::cout << "\n------------Vehicle Report------------\n";
-          std::cout << "Engine Temperature  : " << reinterpret_cast<Status*>(buffer.front())->engineTemp << "^C" << std::endl;
-          std::cout << "Car Weight          : " << reinterpret_cast<Status*>(buffer.front())->carWeight << "Kg" << std::endl;
-          std::cout << "RPM Status          : " << reinterpret_cast<Status*>(buffer.front())->rpmStatus << " RPM" << std::endl;
-          std::cout << "Fuel Tank           : " << reinterpret_cast<Status*>(buffer.front())->fuelTank << "%" << std::endl;
-          std::cout << "Suspension Health   : " << reinterpret_cast<Status*>(buffer.front())->suspensionHealth << "% health" << std::endl;
-          std::cout << "--------------------------------------\n";
+          // std::cout << "\n------------Vehicle Report------------\n";
+          // std::cout << "Engine Temperature  : " << reinterpret_cast<Status*>(buffer.front())->engineTemp << "^C" << std::endl;
+          // std::cout << "Car Weight          : " << reinterpret_cast<Status*>(buffer.front())->carWeight << "Kg" << std::endl;
+          // std::cout << "RPM Status          : " << reinterpret_cast<Status*>(buffer.front())->rpmStatus << " RPM" << std::endl;
+          // std::cout << "Fuel Tank           : " << reinterpret_cast<Status*>(buffer.front())->fuelTank << "%" << std::endl;
+          // std::cout << "Suspension Health   : " << reinterpret_cast<Status*>(buffer.front())->suspensionHealth << "% health" << std::endl;
+          // std::cout << "--------------------------------------\n";
           
           locBuffer.push(*reinterpret_cast<Status*>(buffer.front()));
 
@@ -264,11 +264,6 @@ int StatusData::DisplayFunc() {
     // Main loop
     while (!glfwWindowShouldClose(window) && mRunning)
     {
-        // Poll and handle events (inputs, window resize, etc.)
-        // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if dear imgui wants to use your inputs.
-        // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your main application, or clear/overwrite your copy of the mouse data.
-        // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to your main application, or clear/overwrite your copy of the keyboard data.
-        // Generally you may always pass all inputs to dear imgui, and hide them from your application based on those two flags.
         glfwPollEvents();
 
         // Start the Dear ImGui frame
@@ -276,28 +271,29 @@ int StatusData::DisplayFunc() {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::BulletText("Move your mouse to change the data!");
+        ImGui::BulletText("-X-X-X-X- Vehicle Status Report -X-X-X-X-");
         ImGui::BulletText("This example assumes 60 FPS. Higher FPS requires larger buffer size.");
 
         //static ScrollingBuffer sdataX, sdataY;
         static RollingBuffer   rpmData;
         static RollingBuffer   engineData;
         RollingBuffer   fuelData;
+        static RollingBuffer susData;
+        static RollingBuffer wtData;
 
-        // ImVec2 mouse = ImGui::GetMousePos();
         Status status = locBuffer.front();
         if(locBuffer.size() > 1) {
           locBuffer.pop();
         }
+
         static float t = 0;
         t += ImGui::GetIO().DeltaTime;
-        //sdataX.AddPoint(t, mouse.x * 0.0005f);
-        std::cout << status.rpmStatus << "\n";
+
         rpmData.AddPoint(t,status.rpmStatus * 0.0005f);
         engineData.AddPoint(t,status.engineTemp * 0.0005f);
-        fuelData.AddPoint(t,status.fuelTank);
-        //sdataY.AddPoint(t, mouse.y * 0.0005f);
-        //rdataY.AddPoint(t, mouse.y * 0.0005f);
+        susData.AddPoint(t,status.suspensionHealth * 0.0005f);
+        wtData.AddPoint(t,status.carWeight * 0.0010f);
+        float bar_data[1]{(float)status.fuelTank * 0.01f};
 
         static float history = 10.0f;
         ImGui::SliderFloat("History",&history,1,30,"%.1f s");
@@ -305,7 +301,7 @@ int StatusData::DisplayFunc() {
 
         static ImPlotAxisFlags flags = ImPlotAxisFlags_NoTickLabels;
 
-        if (ImPlot::BeginPlot("##RPM", ImVec2(-1,150))) {
+        if (ImPlot::BeginPlot("##RPM", ImVec2(-1,200))) {
             ImPlot::SetupAxes(NULL, NULL, flags, flags);
             ImPlot::SetupAxisLimits(ImAxis_X1,0,history, ImGuiCond_Always);
             ImPlot::SetupAxisLimits(ImAxis_Y1,0,1);
@@ -313,7 +309,7 @@ int StatusData::DisplayFunc() {
             ImPlot::EndPlot();
         }
 
-        if (ImPlot::BeginPlot("##ENGINE")) {
+        if (ImPlot::BeginPlot("##ENGINE", ImVec2(-1,200))) {
             ImPlot::SetupAxes(NULL, NULL, flags, flags);
             ImPlot::SetupAxisLimits(ImAxis_X1,0,history, ImGuiCond_Always);
             ImPlot::SetupAxisLimits(ImAxis_Y1,0,1);
@@ -321,26 +317,20 @@ int StatusData::DisplayFunc() {
             ImPlot::EndPlot();
         }
 
-        ImGui::BeginChild(111,ImVec2(500,300),true,ImGuiWindowFlags_::ImGuiWindowFlags_NoTitleBar);
 
-        if(ImPlot::BeginPlot("##FUEL")) {
-          
-          ImPlot::PlotBars("Fuel Status",&fuelData.Data[0].x,&fuelData.Data[0].y,fuelData.Data.size(),500);
-          ImPlot::EndPlot();
+        if(ImPlot::BeginPlot("##FUEL",ImVec2(-1,150))) {
+            ImPlot::PlotBarsH("Fuel Status", bar_data, 1,50.0f);
+            ImPlot::EndPlot();
         }
-
-        ImGui::EndChild();
-        // if (ImPlot::BeginPlot("##Scrolling", ImVec2(-1,150))) {
-        //     ImPlot::SetupAxes(NULL, NULL, flags, flags);
-        //     ImPlot::SetupAxisLimits(ImAxis_X1,t - history, t, ImGuiCond_Always);
-        //     ImPlot::SetupAxisLimits(ImAxis_Y1,0,1);
-        //     ImPlot::SetNextFillStyle(IMPLOT_AUTO_COL,0.5f);
-        //     ImPlot::PlotShaded("Mouse X", &sdata1.Data[0].x, &sdata1.Data[0].y, sdata1.Data.size(), -INFINITY, sdata1.Offset, 2 * sizeof(float));
-        //     ImPlot::PlotLine("Mouse Y", &sdata2.Data[0].x, &sdata2.Data[0].y, sdata2.Data.size(), sdata2.Offset, 2*sizeof(float));
-        //     ImPlot::EndPlot();
-        // }
-
-        // ImPlot::PlotLineG("Plotter 1")
+        
+        if(ImPlot::BeginPlot("##Suspension&Weight", ImVec2(-1,150))) {
+            ImPlot::SetupAxes(NULL, NULL, flags, flags);
+            ImPlot::SetupAxisLimits(ImAxis_X1,0,history, ImGuiCond_Always);
+            ImPlot::SetupAxisLimits(ImAxis_Y1,0,1);
+            ImPlot::PlotLine("Suspension Health", &susData.Data[0].x, &susData.Data[0].y, susData.Data.size(), 0, 2 * sizeof(float));
+            ImPlot::PlotLine("Car Weight", &wtData.Data[0].x, &wtData.Data[0].y, wtData.Data.size(), 0, 2 * sizeof(float));
+            ImPlot::EndPlot();
+        }
 
         // Rendering
         
@@ -355,8 +345,6 @@ int StatusData::DisplayFunc() {
         glfwSwapBuffers(window);
         
     }
-
-    getter.~thread();
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
